@@ -57,6 +57,7 @@ class OverlayService : Service() {
         wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         buildButton()
         showWatcher()
+        handler.post { showControls() }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -179,10 +180,12 @@ class OverlayService : Service() {
         detachButton()
         if (!isOn) {
             isOn = true
+            button.text = "🔓 Unlock"
             removeSafely(watcher); watcher = null
             showBlackout()
         } else {
             isOn = false
+            button.text = "🔒 Lock"
             removeBlackout()
             showWatcher()
         }
@@ -230,7 +233,7 @@ class OverlayService : Service() {
         val prefs = getSharedPreferences("pos", MODE_PRIVATE)
 
         btnParams = LP(
-            size, size, LP.TYPE_APPLICATION_OVERLAY,
+            LP.WRAP_CONTENT, size, LP.TYPE_APPLICATION_OVERLAY,
             LP.FLAG_NOT_FOCUSABLE or LP.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT
         ).apply {
@@ -246,13 +249,17 @@ class OverlayService : Service() {
         val longPress = Runnable { longFired = true; openSettings() }
 
         button = TextView(this).apply {
-            text = "🔒"; textSize = 18f; gravity = Gravity.CENTER
+            text = "🔒 Lock"; textSize = 15f; gravity = Gravity.CENTER
+            setTextColor(Color.WHITE)
+            setPadding((16 * resources.displayMetrics.density).toInt(), 0,
+                       (16 * resources.displayMetrics.density).toInt(), 0)
             background = GradientDrawable().apply {
-                shape = GradientDrawable.OVAL
-                setColor(0x44FFFFFF)
-                setStroke(2, 0x55FFFFFF)
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = size / 2f
+                setColor(0xCC333333.toInt())
+                setStroke(3, 0x99FFFFFF.toInt())
             }
-            alpha = 0.7f
+            alpha = 0.9f
             setOnTouchListener { v, e ->
                 when (e.actionMasked) {
                     MotionEvent.ACTION_DOWN -> {
